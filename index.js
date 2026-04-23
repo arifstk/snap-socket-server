@@ -9,6 +9,7 @@ import axios from "axios";
 dotenv.config();
 const app = express();
 
+app.use(express.json()); // for parsing application/json
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
@@ -38,13 +39,27 @@ io.on("connection", (socket) => {
     const location = {
       type: "Point",
       coordinates: [longitude, latitude],
-    }
-    await axios.post(`${process.env.NEXT_BASE_URL}/api/socket/update-location`, {userId, location});
+    };
+    await axios.post(
+      `${process.env.NEXT_BASE_URL}/api/socket/update-location`,
+      { userId, location },
+    );
   });
 
   socket.on("disconnect", (socket) => {
     console.log(`User disconnected: ${socket.id}`);
   });
+});
+
+// common api
+app.post("/notify", (req, res) => {
+  const { event, data, socketId } = req.body;
+  if (socketId) {
+    io.to(socketId).emit(event, data);
+  } else {
+    io.emit(event, data);
+  }
+  return res.status(200).json({"success": true});
 });
 
 server.listen(port, () => {
@@ -56,7 +71,3 @@ server.listen(port, () => {
 // app/api/socket/connect/route.ts
 // modify components/HeroSection.tsx
 // create an api in nextJs project for this update location  app/api/socket/connect/update-location/route.ts
-
-
-
-
