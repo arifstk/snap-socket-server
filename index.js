@@ -40,11 +40,15 @@ io.on("connection", (socket) => {
       type: "Point",
       coordinates: [longitude, latitude],
     };
+    io.emit("update-deliveryBoy-location", { userId, location });
+
     await axios.post(
       `${process.env.NEXT_BASE_URL}/api/socket/update-location`,
       { userId, location },
     );
   });
+
+  // io.emit("update-deliveryBoy-location", {userId, location});
 
   socket.on("disconnect", (socket) => {
     console.log(`User disconnected: ${socket.id}`);
@@ -59,7 +63,7 @@ app.post("/notify", (req, res) => {
   } else {
     io.emit(event, data);
   }
-  return res.status(200).json({"success": true});
+  return res.status(200).json({ success: true });
 });
 
 server.listen(port, () => {
